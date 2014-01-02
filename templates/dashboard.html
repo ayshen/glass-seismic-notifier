@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width" />
+
+<style>
+body {
+    font-family: sans-serif;
+}
+li input.loi-delete {
+    background: transparent;
+    border: none;
+    text-decoration: underline;
+    color: #f66;
+}
+#geocode-output {
+    color: #888;
+}
+#geocode-output.geocode-error {
+    color: #f66;
+}
+</style>
+
+<title>dashboard | hello gae</title>
+
+<h1>glass-seismic-notifier</h1>
+
+<article>
+    <section>
+        <header>
+            <h2>Locations of interest</h2>
+        </header>
+        <p>Places whose earthquakes you are interested in will go here.</p>
+        <ul id="loi-list">
+            {% for location in locations_of_interest %}
+            <li>
+                <form method="POST" action="/loi">
+                    <input type="hidden" name="action" value="delete" />
+                    <input type="hidden" name="key" value="{{ location.key }}" />
+                    <span>{{ location.description }}</span>
+                    <input type="submit" class="loi-delete" value="remove" />
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+        <p>
+            <form method="POST" action="/loi">
+                <input type="hidden" name="action" value="put" />
+                <input id="lng" type="hidden" name="lng" value="" />
+                <input id="lat" type="hidden" name="lat" value="" />
+                <label for="loi">Add this place:</label>
+                <input name="loi" id="loi" placeholder="place" />
+                <input id="loi-put" type="submit" value="Add" />
+                <div>
+                    <span>Coordinates:</span>
+                    <span id="geocode-output"></span>
+                </div>
+            </form>
+        </p>
+    </section>
+</article>
+
+<script src="https://maps.googleapis.com/maps/api/js?sensor=false"></script>
+<script>
+function onGeocodeResult(results, geocoderStatus) {
+    var geocodeOutput = document.getElementById("geocode-output");
+    var pleaseContact = "";
+    switch(geocoderStatus) {
+    case google.maps.GeocoderStatus.ERROR:
+        geocodeOutput.classList.add("geocode-error");
+        geocodeOutput.innerHTML = "Can&#39;t reach Google Maps. Check your internet connection.";
+        break;
+    case google.maps.GeocoderStatus.INVALID_REQUEST:
+        geocodeOutput.classList.add("geocode-error");
+        geocodeOutput.innerHTML = "Can&#39;t convert to a location." +
+                pleaseContact;
+        break;
+    case google.maps.GeocoderStatus.OVER_QUERY_LIMIT:
+        geocodeOutput.classList.add("geocode-error");
+        geocodeOutput.innerHTML = "I&#39;ve made too many geocoding requests." +
+                pleaseContact;
+        break;
+    case google.maps.GeocoderStatus.REQUEST_DENIED:
+        geocodeOutput.classList.add("geocode-error");
+        geocodeOutput.innerHTML = "I&#39;m not allowed to ask Google Maps to " +
+                "convert places into coordinates." + pleaseContact;
+        break;
+    case google.maps.GeocoderStatus.UNKNOWN_ERROR:
+        geocodeOutput.classList.add("geocode-error");
+        geocodeOutput.innerHTML = "Something went wrong. Please try again.";
+        break;
+    case google.maps.GeocoderStatus.ZERO_RESULTS:
+        geocodeOutput.classList.add("geocode-error");
+        geocodeOutput.innerHTML = "That doesn&#39;t look like " +
+                "an actual place&hellip;";
+        break;
+    case google.maps.GeocoderStatus.OK:
+        var latLng = results[0].geometry.location;
+        document.getElementById("lng").value = latLng.lng();
+        document.getElementById("lat").value = latLng.lat();
+        geocodeOutput.classList.remove("geocode-error");
+        geocodeOutput.innerHTML = "(" + latLng.lng() + ", " + latLng.lat() + ")";
+        break;
+    default:
+        console.error("strange GeocoderStatus", geocoderStatus);
+        geocodeOutput.innerHTML = "";
+        break;
+    }
+}
+function geocodeLoi() {
+    if(window.loiChanged) {
+        window.loiChanged = false;
+        window.geocoder.geocode(
+                {"address": document.getElementById("loi").value},
+                onGeocodeResult);
+    }
+}
+function onLoiChanged() {
+    window.loiChanged = true;
+}
+function init() {
+    window.loiChanged = false;
+    window.geocoder = new google.maps.Geocoder();
+    window.loiChangeListener = google.maps.event.addDomListener(
+            document.getElementById("loi"),
+            "keyup",
+            onLoiChanged);
+    window.interval_geocodeLoi = setInterval(geocodeLoi, 1000);
+}
+function dispose() {
+    clearInterval(window.interval_geocodeLoi);
+    google.maps.event.removeListener(window.loiChangeListener);
+    google.maps.event.removeListener(window.windowLoadListener);
+    google.maps.event.removeListener(window.windowUnloadListener);
+    window.loiChanged = undefined;
+    window.geocoder = undefined;
+    window.windowLoadListener = undefined;
+    window.windowUnloadListener = undefined;
+    window.loiChangeListener = undefined;
+    window.interval_geocodeLoi = undefined;
+}
+window.windowLoadListener = google.maps.event.addDomListener(window, "load", init);
+window.windowUnloadListener = google.maps.event.addDomListener(window, "unload", dispose);
+</script>
