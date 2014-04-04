@@ -23,6 +23,7 @@ import apiclient.http
 import google.appengine.ext.ndb
 import jinja2
 import oauth2client.appengine
+import urllib2
 import webapp2
 
 # Import the support classes and request handlers for each of the various parts
@@ -38,6 +39,7 @@ import util
 import models
 import dashboard
 import loi
+import fetch
 import timeline
 
 
@@ -62,12 +64,26 @@ class MainHandler (util.TemplatingBaseHandler):
             self._render_template("index.html", template_values)
 
 
+class SignoutHandler (webapp2.RequestHandler):
+    @util.oauth_decorator.oauth_required
+    def get(self):
+        user_id = models.User.info().get("id")
+        for loi in models.LocationOfInterest.query_user(user_id):
+            loi.key.delete()
+        while models.User.get_by_id(user_id):
+            models.User.get_by_id(user_id).key.delete()
+        util.oauth_decorator.credentials.revoke(util.oauth_decorator.http())
+        self.redirect("/")
+
+
 # All URI routing for the application.
 ROUTES = [
     ("/", MainHandler),
     ("/dashboard", dashboard.DashboardHandler),
     ("/loi", loi.LocationOfInterestHandler),
     ("/timeline", timeline.TimelineHandler),
+    ("/fetch", fetch.QuakeDataFetchHandler),
+    ("/signout", SignoutHandler),
     (util.oauth_decorator.callback_path, util.oauth_decorator.callback_handler()),
 ]
 

@@ -1,0 +1,4 @@
+cron:
+- description: Job for regularly fetching earthquakes from the US Geological Survey.
+  url: /fetch
+  schedule: every 30 minutes

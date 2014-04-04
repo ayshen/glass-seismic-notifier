@@ -1,4 +1,5 @@
 import apiclient.discovery
+import google.appengine.ext.db
 import google.appengine.ext.ndb
 import oauth2client.appengine
 
@@ -23,11 +24,8 @@ class NoUserIdException (CredentialsException):
     pass
 
 
-class User (object):
-    """ Namespace wrapper for dealing with the current user's information.
-    Note: we don't store refresh tokens or anything like that because we don't
-    anticipate needing offline access.
-    """
+class User (google.appengine.ext.ndb.Model):
+    user_id = google.appengine.ext.ndb.StringProperty()
 
     @staticmethod
     def info():

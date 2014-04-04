@@ -1,0 +1,4 @@
+body{font-family: sans-serif;}
+li input.loi-delete{background:transparent;border:none;text-decoration:underline;color:#f66;}
+#geocode-output{color:#888;}
+#geocode-output.geocode-error{color:#f66;}

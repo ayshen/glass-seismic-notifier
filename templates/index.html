@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+
+<link rel="stylesheet" href="/static/index.css">
 
 <title>glass-seismic-notifier</title>
 
-<h1>glass-seismic-notifier</h1>
+<h1 tabindex="0">glass-seismic-notifier</h1>
 
-<p>Get relatively timely updates about earthquakes near places that matter to
-you.</p>
+<p tabindex="1">Get relatively timely updates on your Glass about earthquakes
+near places that matter to you.</p>
 
-<p><a href="{{ authorization_uri }}">Press here to authorize.</a></p>
+<p><a id="auth-link" href="{{ authorization_uri }}" tabindex="2">Let&#39;s go</a></p>
