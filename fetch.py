@@ -64,13 +64,20 @@ def mapurl(quake):
 # "markers=size:mid%%7C%f,%f") % (lat, lon)
 
 
+def rfc3339format(dt):
+    dtstr = dt.isoformat()
+    if '.' not in dtstr:
+        dtstr = dtstr + ".00"
+    return dtstr + "+00:00"
+
+
 def make_bundle_cover(bundleId, cards):
     """ Make a static cover card for a list of earthquakes.
     TODO make this prettier. Right now just make a card declaring the
     number of earthquakes in this bundle.
     """
     return {
-            "displayTime": datetime.datetime.utcnow().isoformat() + ".00+00:00",
+            "displayTime": rfc3339format(datetime.datetime.utcnow()),
             "html": "<article><section>%d earthquakes</section></article>" % len(cards),
             "menuItems": [{"action": "DELETE"}],
             "isBundleCover": True,
@@ -104,7 +111,7 @@ def make_card(quake, bundleId=None, ):
     # Notice that the map image needs to be attached to the card to work
     # properly.
     card = {
-            "displayTime": quake_dt.isoformat() + ".00+00:00",
+            "displayTime": rfc3339format(quake_dt),
             "html": template.render(values),
             "attachments": [{
                     "contentType": "image/png",
