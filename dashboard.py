@@ -20,7 +20,10 @@ class DashboardHandler (util.TemplatingBaseHandler):
         except models.CredentialsException as e:
             self.redirect(e.authorization_url)
 
-        if not models.User.get_by_id(user_id):
+        #if not models.User.get_by_id(user_id):
+        #    models.User(user_id=user_id).put()
+        result = models.User.query(models.User.user_id == user_id).get()
+        if result is None:
             models.User(user_id=user_id).put()
 
         oauth2client.appengine.StorageByKeyName(
